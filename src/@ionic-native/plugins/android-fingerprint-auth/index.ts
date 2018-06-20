@@ -47,6 +47,13 @@ export interface AFAAuthOptions {
   userAuthRequired?: boolean;
 
   /**
+   * Bypass authentication and just encrypt input.
+   * If `true` this option will not display the authentication dialog for fingerprint or backup credentials.
+   * It will just encrypt the input and return a token.
+   */
+  encryptNoAuth?: boolean;
+
+  /**
    * Set the title of the fingerprint authentication dialog.
    */
   dialogTitle?: string;
