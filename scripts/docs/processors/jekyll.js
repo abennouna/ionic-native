@@ -1,35 +1,65 @@
+"use strict";
 module.exports = function jekyll(renderDocsProcessor) {
   return {
     name: 'jekyll',
     description: 'Create jekyll includes',
     $runAfter: ['paths-computed'],
     $runBefore: ['rendering-docs'],
-    $process: function(docs) {
-      var currentVersion = renderDocsProcessor.extraData.version.current.name;
+    $process: docs => {
 
       // pretty up and sort the docs object for menu generation
-      docs = docs.filter(function(doc) {
-        return (!!doc.name && !!doc.outputPath) || doc.docType === 'index-page';
-      });
-      docs.sort(function(a, b) {
-        textA = a.name ? a.name.toUpperCase() : '';
-        textB = b.name ? b.name.toUpperCase() : '';
-        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-      });
-      docs.forEach(function(doc, i) {
-        doc.outputPath = doc.outputPath.toLowerCase().replace(' ', '-');
-        docs[i].URL = doc.outputPath.replace('docs/v2//', 'docs/v2/')
-                                    .replace('/index.md', '');
-      });
+      docs = docs.filter(doc => (!!doc.name && !!doc.outputPath) || doc.docType === 'index-page');
 
       docs.push({
-        docType: 'native_menu-menu',
-        id: 'native_menu-menu',
-        template: 'native_menu.template.html',
-        outputPath: '_includes/v2_fluid/native_menu.html'
+        docType: 'class',
+        URL: 'https://github.com/ionic-team/ionic-native-google-maps/blob/master/documents/README.md',
+        name: 'Google Maps',
       });
 
-      // returning docs will replace docs object in the next process
+      docs.sort((a, b) => {
+        const textA = a.name ? a.name.toUpperCase() : '',
+          textB = b.name ? b.name.toUpperCase() : '';
+
+        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+      });
+
+      docs.forEach(doc => {
+        if (!doc.outputPath) {
+          return;
+        }
+
+        doc.outputPath = doc.outputPath.toLowerCase().replace(/\s/g, '-');
+        doc.URL = doc.outputPath.replace('docs//', 'docs/')
+          .replace('/index.md', '')
+          .replace('content/', '');
+        // add trailing slash to plugin pages
+        if(!doc.URL.endsWith("/") && !doc.URL.endsWith(".html")) {
+          doc.URL = doc.URL + '/';
+        }
+
+        doc.URL = '/' + doc.URL;
+      });
+
+      const betaDocs = [];
+
+      docs = docs.filter(doc => {
+        if (doc.beta === true) {
+          betaDocs.push(doc);
+          return false;
+        }
+        return true;
+      });
+
+      docs = docs.concat(betaDocs);
+
+      // add side menu
+      docs.push({
+        docType: 'nativeMenu',
+        id: 'native_menu',
+        template: 'native_menu.template.html',
+        outputPath: 'content/_includes/fluid/native_menu.html'
+      });
+
       return docs;
     }
   };
